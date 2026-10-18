@@ -17,6 +17,9 @@ function App() {
   const [sidebarOpen, setSideBarOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -163,6 +166,48 @@ function App() {
     }
 
     console.log("Logged in: ", data.user);
+  };
+
+  const handleSignup = async () => {
+    if (!signupName.trim() || !signupEmail.trim() || !signupPassword) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    if (signupPassword.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { data, error } = await supabase.auth.signUp({
+      email: signupEmail.trim(),
+      password: signupPassword,
+      options: {
+        data: {
+          name: signupName.trim(),
+        },
+      },
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      console.error("Signup failed:", error);
+      alert(error.message);
+      return;
+    }
+
+    if (!data.session) {
+      alert(
+        "Account created! Check your email to confirm your account, then log in.",
+      );
+      setScreen("login");
+      return;
+    }
+
+    alert("Account created successfully!");
   };
 
   const handleContinue = async () => {
@@ -374,6 +419,7 @@ function App() {
           {screen === "login" && (
             <section>
               <h2>Welcome back!</h2>
+
               <input
                 type='email'
                 placeholder='abc@gmail.com'
@@ -389,6 +435,43 @@ function App() {
               />
 
               <button onClick={handleLogin}>Log In</button>
+
+              <p>New to HydrateBro?</p>
+              <button onClick={() => setScreen("signup")}>
+                Create Account
+              </button>
+            </section>
+          )}
+
+          {screen === "signup" && (
+            <section>
+              <h2>Create your HydrateBro account 💧</h2>
+
+              <input
+                type='text'
+                placeholder='Your name'
+                value={signupName}
+                onChange={(e) => setSignupName(e.target.value)}
+              />
+
+              <input
+                type='email'
+                placeholder='Email address'
+                value={signupEmail}
+                onChange={(e) => setSignupEmail(e.target.value)}
+              />
+
+              <input
+                type='password'
+                placeholder='Create a password (min. 6 characters)'
+                value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)}
+              />
+
+              <button onClick={handleSignup}>Sign Up</button>
+
+              <p>Already have an account?</p>
+              <button onClick={() => setScreen("login")}>Back to Login</button>
             </section>
           )}
 
